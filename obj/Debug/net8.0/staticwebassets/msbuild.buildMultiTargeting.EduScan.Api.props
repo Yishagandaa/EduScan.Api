@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../build/EduScan.Api.props" />
+</Project>
