@@ -173,6 +173,53 @@ app.MapPost("/api/attendance/scan", async (ScanRequest request, AppDbContext db)
     ));
 }).WithName("ScanAttendance").WithTags("Attendance");
 
+app.MapPost("/api/attendance", async (ScanRequest request, AppDbContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(request.Lrn))
+    {
+        return Results.BadRequest(new { message = "LRN is required for attendance scan." });
+    }
+
+    var student = await db.Students.FirstOrDefaultAsync(s => s.Lrn == request.Lrn.Trim());
+    if (student == null)
+    {
+        return Results.NotFound(new { message = $"Student with LRN '{request.Lrn}' not registered in database." });
+    }
+
+    var now = DateTime.Now;
+    var cutoff = new TimeSpan(7, 30, 0);
+    var status = (now.TimeOfDay <= cutoff) ? "ON TIME" : "LATE";
+    var gate = string.IsNullOrWhiteSpace(request.GateNumber) ? "Gate 1" : request.GateNumber.Trim();
+
+    var log = new AttendanceLog
+    {
+        StudentLrn = student.Lrn,
+        ScannedAt = now,
+        Status = status,
+        GateNumber = gate
+    };
+
+    db.AttendanceLogs.Add(log);
+    await db.SaveChangesAsync();
+
+    var formattedTime = now.ToString("hh:mm:ss tt");
+
+    return Results.Ok(new ScanResponse(
+        Success: true,
+        Message: $"Gate attendance recorded: {status}",
+        Status: status,
+        FormattedTime: formattedTime,
+        ScannedAt: now,
+        Lrn: student.Lrn,
+        FullName: student.FullName,
+        Grade: student.Grade,
+        Section: student.Section,
+        Track: student.Track,
+        GateNumber: log.GateNumber
+    ));
+}).WithName("RecordAttendance").WithTags("Attendance");
+
+
 // ==========================================
 // 3. ADMIN METRICS DASHBOARD
 // ==========================================
