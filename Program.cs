@@ -271,15 +271,4 @@ app.MapPost("/api/students", async (Student student, AppDbContext db) =>
     return Results.Created($"/api/student/{student.Lrn}/history", student);
 }).WithName("CreateStudent").WithTags("Student");
 
-// ==========================================
-// HOST BINDING FOR EXPO GO, RENDER & LOCAL NETWORK
-// ==========================================
-var listenUrl = Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
-if (!string.IsNullOrWhiteSpace(listenUrl))
-{
-    app.Run();
-}
-else
-{
-    app.Run("http://0.0.0.0:5005");
-}
+app.Run();
