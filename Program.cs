@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -272,7 +272,14 @@ app.MapPost("/api/students", async (Student student, AppDbContext db) =>
 }).WithName("CreateStudent").WithTags("Student");
 
 // ==========================================
-// HOST BINDING FOR EXPO GO & LOCAL NETWORK
+// HOST BINDING FOR EXPO GO, RENDER & LOCAL NETWORK
 // ==========================================
-var listenUrl = Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? "http://0.0.0.0:5005";
-app.Run("http://0.0.0.0:5005");
+var listenUrl = Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
+if (!string.IsNullOrWhiteSpace(listenUrl))
+{
+    app.Run();
+}
+else
+{
+    app.Run("http://0.0.0.0:5005");
+}
